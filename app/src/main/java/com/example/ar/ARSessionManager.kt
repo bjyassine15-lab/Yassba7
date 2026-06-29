@@ -3,12 +3,15 @@ package com.example.ar
 import android.content.Context
 import android.media.Image
 import android.opengl.GLSurfaceView
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import com.google.ar.core.Anchor
 import com.google.ar.core.Config
 import com.google.ar.core.Frame
 import com.google.ar.core.Session
-import com.google.ar.core.exceptions.UnavailableException
+import com.google.ar.core.exceptions.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -42,11 +45,24 @@ class ARSessionManager(private val context: Context) {
             }
     }
 
+    private fun showToast(message: String) {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
+
     /**
      * Attempts to initialize the ARCore Session.
      */
     fun initializeSession(): Session? {
         if (session != null) return session
+
+        val availability = com.google.ar.core.ArCoreApk.getInstance().checkAvailability(context)
+        Log.d("ARSessionManager", "ARCore Availability: $availability")
+        if (availability == com.google.ar.core.ArCoreApk.Availability.UNSUPPORTED_DEVICE_NOT_CAPABLE) {
+            showToast("هذا الجهاز غير متوافق مع خدمات الواقع المعزز ARCore!")
+            return null
+        }
 
         try {
             val arSession = Session(context)
@@ -72,7 +88,28 @@ class ARSessionManager(private val context: Context) {
             arSession.configure(config)
             this.session = arSession
             return arSession
+        } catch (e: UnavailableArcoreNotInstalledException) {
+            showToast("فشل تهيئة ARCore: لم يتم تثبيت خدمات ARCore!")
+            Log.e("ARSessionManager", "ARCore services not installed", e)
+            return null
+        } catch (e: UnavailableApkTooOldException) {
+            showToast("فشل تهيئة ARCore: نسخة خدمات ARCore قديمة جداً!")
+            Log.e("ARSessionManager", "ARCore APK too old", e)
+            return null
+        } catch (e: UnavailableSdkTooOldException) {
+            showToast("فشل تهيئة ARCore: نسخة الـ SDK قديمة جداً!")
+            Log.e("ARSessionManager", "ARCore SDK too old", e)
+            return null
+        } catch (e: UnavailableDeviceNotCompatibleException) {
+            showToast("فشل تهيئة ARCore: هذا الجهاز غير مدعوم للواقع المعزز!")
+            Log.e("ARSessionManager", "Device not compatible with ARCore", e)
+            return null
+        } catch (e: UnavailableUserDeclinedInstallationException) {
+            showToast("فشل تهيئة ARCore: تم رفض تثبيت أو تحديث خدمات ARCore!")
+            Log.e("ARSessionManager", "User declined ARCore installation", e)
+            return null
         } catch (e: Exception) {
+            showToast("خطأ غير متوقع في تهيئة AR: ${e.localizedMessage}")
             Log.e("ARSessionManager", "Failed to initialize ARCore Session", e)
             return null
         }
@@ -84,7 +121,11 @@ class ARSessionManager(private val context: Context) {
                 try {
                     it.resume()
                     isSessionActive.set(true)
+                } catch (e: UnavailableException) {
+                    showToast("فشل تشغيل كاميرا ARCore!")
+                    Log.e("ARSessionManager", "Playback failed", e)
                 } catch (e: Exception) {
+                    showToast("خطأ أثناء استئناف جلسة AR: ${e.localizedMessage}")
                     Log.e("ARSessionManager", "Error resuming ARCore session", e)
                 }
             }

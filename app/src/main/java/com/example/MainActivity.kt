@@ -32,6 +32,7 @@ import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.NeonBlue
 import com.example.ui.NeonRed
 import com.example.ui.ARDuelViewModel
+import com.example.sync.GameState
 
 class MainActivity : ComponentActivity() {
 
@@ -60,8 +61,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyApplicationTheme {
+                val gameState by viewModel.syncManager.gameState.collectAsState()
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
+                    containerColor = if (gameState == GameState.LOBBY) MaterialTheme.colorScheme.background else Color.Transparent,
                     contentWindowInsets = WindowInsets.navigationBars
                 ) { innerPadding ->
                     Box(

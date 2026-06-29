@@ -35,6 +35,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.ar.CameraRenderer
 import com.example.sync.GameMode
 import com.example.sync.GameState
@@ -90,10 +93,38 @@ fun GameUI(viewModel: ARDuelViewModel, onExit: () -> Unit) {
         }
     }
 
+    var glSurfaceViewRef by remember { mutableStateOf<GLSurfaceView?>(null) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner, glSurfaceViewRef) {
+        val view = glSurfaceViewRef
+        if (view != null) {
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_RESUME -> {
+                        view.onResume()
+                        viewModel.arSessionManager.resumeSession()
+                    }
+                    Lifecycle.Event.ON_PAUSE -> {
+                        view.onPause()
+                        viewModel.arSessionManager.pauseSession()
+                    }
+                    else -> {}
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
+        } else {
+            onDispose {}
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkSlate)
+            .background(if (gameState == GameState.LOBBY) DarkSlate else Color.Transparent)
     ) {
         if (gameState == GameState.LOBBY) {
             // LOBBY CONTROL PANEL
@@ -196,6 +227,7 @@ fun GameUI(viewModel: ARDuelViewModel, onExit: () -> Unit) {
                                 }
                             }
                         })
+                        glSurfaceViewRef = this
                     }
                 },
                 modifier = Modifier.fillMaxSize()
