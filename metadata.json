@@ -1,0 +1,6 @@
+{
+  "name": "الاشتباك المعزز (AR Duel)",
+  "description": "لعبة إطلاق نار (1v1) بالواقع المعزز ومزامنة ثنائية في الوقت الفعلي مع فحص الانسداد باستخدام Depth API و Cloud Anchors.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

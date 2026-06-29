@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "759334483624",
+    "project_id": "arshooter-game-1dab1",
+    "storage_bucket": "arshooter-game-1dab1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:759334483624:android:fd148a6a2ac348fef2349d",
+        "android_client_info": {
+          "package_name": "com.yourname.argame"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeGQlsWT39KTmzNLOvtTOjGhDtLEw6n2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
